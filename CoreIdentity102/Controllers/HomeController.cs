@@ -29,6 +29,10 @@ namespace CoreIdentity102.Controllers
         {
             return View();
         }
+        public IActionResult Login()
+        {
+            return View();
+        }
         [HttpPost]
         public async Task<IActionResult> SignUp(UserViewModel model)
         {
@@ -53,6 +57,29 @@ namespace CoreIdentity102.Controllers
             }
             return View(model);//modeli döndürüyorum ki kullanıcı yaptığı hatayı görebilsin 
         }
+        [HttpGet]
+        public async Task<IActionResult> Login(UserViewModel model)
+        {
+            if (ModelState.IsValid)
+            {
+                AppUser user = new AppUser();
+                user.UserName = model.UserName;
+                IdentityResult result = await _userManager.CreateAsync(user, model.Password);
+                if (result.Succeeded)
+                {
+                    return RedirectToAction("Login");
+                }
+                else
+                {
+                    foreach (IdentityError item in result.Errors)
+                    {
+                        ModelState.AddModelError(item.Code, item.Description);
+                    }
+                }
+            }
+            return View(model);//modeli döndürüyorum ki kullanıcı yaptığı hatayı görebilsin 
+        }
+
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Error()
