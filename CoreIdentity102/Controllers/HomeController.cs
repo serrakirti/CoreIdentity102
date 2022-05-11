@@ -11,7 +11,7 @@ namespace CoreIdentity102.Controllers
         private readonly ILogger<HomeController> _logger;
         private UserManager<AppUser> _userManager;
 
-        public HomeController(ILogger<HomeController> logger,UserManager<AppUser>userManager)
+        public HomeController(ILogger<HomeController> logger, UserManager<AppUser> userManager)
         {
             _logger = logger;
             _userManager = userManager;
@@ -32,6 +32,25 @@ namespace CoreIdentity102.Controllers
         public IActionResult Login()
         {
             return View();
+        }
+        [HttpPost]
+        public async Task<IActionResult> Login(LoginViewModel model)
+        {
+            if (ModelState.IsValid)
+            {
+                var userName = await _userManager.FindByNameAsync(model.UserName);
+                var pass = await _userManager.CheckPasswordAsync(userName, model.Password);
+                if (pass != false)
+                {
+                    return RedirectToAction("Index", "Home");
+                }
+                else
+                {
+                    ModelState.AddModelError(String.Empty, "Invalid UserName or Password");
+                }
+
+            }
+            return View(model);//modeli döndürüyorum ki kullanıcı yaptığı hatayı görebilsin 
         }
         [HttpPost]
         public async Task<IActionResult> SignUp(UserViewModel model)
@@ -57,28 +76,7 @@ namespace CoreIdentity102.Controllers
             }
             return View(model);//modeli döndürüyorum ki kullanıcı yaptığı hatayı görebilsin 
         }
-        [HttpGet]
-        public async Task<IActionResult> Login(UserViewModel model)
-        {
-            if (ModelState.IsValid)
-            {
-                AppUser user = new AppUser();
-                user.UserName = model.UserName;
-                IdentityResult result = await _userManager.CreateAsync(user, model.Password);
-                if (result.Succeeded)
-                {
-                    return RedirectToAction("Login");
-                }
-                else
-                {
-                    foreach (IdentityError item in result.Errors)
-                    {
-                        ModelState.AddModelError(item.Code, item.Description);
-                    }
-                }
-            }
-            return View(model);//modeli döndürüyorum ki kullanıcı yaptığı hatayı görebilsin 
-        }
+    
 
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
